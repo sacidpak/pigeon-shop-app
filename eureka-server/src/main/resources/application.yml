@@ -1,0 +1,19 @@
+spring:
+  application:
+    name: eureka-server
+  zipkin:
+    base-url: http://localhost:9411
+
+server:
+  port: 8761
+eureka:
+  client:
+    healthcheck:
+      enabled: true
+    fetch-registry: false
+    register-with-eureka: false
+  instance:
+    prefer-ip-address: true
+    hostname: localhost
+  server:
+    enable-self-preservation: false
