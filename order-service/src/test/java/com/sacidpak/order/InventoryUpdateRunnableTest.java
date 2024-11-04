@@ -6,8 +6,10 @@ import com.sacidpak.clients.product.InventoryUpdateResponse;
 import com.sacidpak.clients.product.ProductClient;
 import com.sacidpak.order.domain.Order;
 import com.sacidpak.order.domain.OrderItem;
+import com.sacidpak.order.domain.Outbox;
 import com.sacidpak.order.enums.OrderStatus;
 import com.sacidpak.order.repository.OrderItemRepository;
+import com.sacidpak.order.repository.OutboxRepository;
 import com.sacidpak.order.service.InventoryUpdateRunnable;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -33,6 +35,9 @@ class InventoryUpdateRunnableTest {
 
     @Mock
     private OrderItemRepository orderItemRepository;
+
+    @Mock
+    private OutboxRepository outboxRepository;
 
     @InjectMocks
     private InventoryUpdateRunnable inventoryUpdateRunnable;
@@ -79,8 +84,11 @@ class InventoryUpdateRunnableTest {
         when(productClient.updateInventory(any(InventoryUpdateRequest.class)))
                 .thenReturn(ResponseEntity.ok(new InventoryUpdateResponse(false, null)));
 
+        when(outboxRepository.save(any(Outbox.class))).thenReturn(any(Outbox.class));
+
         inventoryUpdateRunnable.updateInventory(order, orderItems);
 
+        verify(outboxRepository, times(1)).save(any(Outbox.class));
         verify(productClient, times(1)).updateInventory(any(InventoryUpdateRequest.class));
     }
 
@@ -89,8 +97,11 @@ class InventoryUpdateRunnableTest {
         when(productClient.updateInventory(any(InventoryUpdateRequest.class)))
                 .thenThrow(new RuntimeException("Service unavailable"));
 
+        when(outboxRepository.save(any(Outbox.class))).thenReturn(any(Outbox.class));
+
         inventoryUpdateRunnable.updateInventory(order, orderItems);
 
+        verify(outboxRepository, times(1)).save(any(Outbox.class));
         verify(productClient, times(1)).updateInventory(any(InventoryUpdateRequest.class));
     }
 }
