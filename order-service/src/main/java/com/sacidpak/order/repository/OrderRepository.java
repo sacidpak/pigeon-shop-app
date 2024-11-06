@@ -12,17 +12,19 @@ import java.util.Optional;
 public interface OrderRepository extends BaseRepository<Order, Long> {
 
     @Query("""
-                select o from Order o
+                select o
+                from Order o
                 where o.orderNumber = :orderNumber
-                and o.deleted = false
+                    and o.deleted = false
             """)
     Optional<Order> findByOrderNumber(@Param("orderNumber") String orderNumber);
 
     @Query("""
-                select o from Order o
+                select o
+                from Order o
                 where o.orderNumber = :orderNumber
-                and o.status in ( :statusList )
-                and o.deleted = false
+                    and o.status in ( :statusList )
+                    and o.deleted = false
             """)
     Optional<Order> findByOrderNumberAndStatuses(@Param("orderNumber") String orderNumber,
                                                  @Param("statusList") List<OrderStatus> orderStatusList);

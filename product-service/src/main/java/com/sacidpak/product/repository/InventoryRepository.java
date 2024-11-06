@@ -10,11 +10,11 @@ import java.util.List;
 public interface InventoryRepository extends BaseRepository<Inventory, Long> {
 
     @Query("""
-                    select i from Inventory i
-                                join i.product p
+                    select i
+                    from Inventory i join i.product p
                     where p.barcode in (:barcodes)
-                    and i.deleted = false
-                    and p.deleted = false
+                        and i.deleted = false
+                        and p.deleted = false
             """)
     List<Inventory> findByBarcodes(@Param("barcodes") List<String> barcodes);
 }

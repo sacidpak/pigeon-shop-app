@@ -10,10 +10,11 @@ import java.util.List;
 public interface OrderItemRepository extends BaseRepository<OrderItem, Long> {
 
     @Query("""
-                select oi from OrderItem oi join oi.order o
+                select oi
+                from OrderItem oi join oi.order o
                 where o.orderNumber = :orderNumber
-                  and o.deleted = false
-                  and oi.deleted = false
+                    and o.deleted = false
+                    and oi.deleted = false
             """)
     List<OrderItem> findAllByOrderNumber(@Param("orderNumber") String orderNumber);
 }

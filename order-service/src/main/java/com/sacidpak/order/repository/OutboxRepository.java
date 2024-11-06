@@ -9,9 +9,10 @@ import java.util.List;
 public interface OutboxRepository extends BaseRepository<Outbox, Long> {
 
     @Query("""
-                select o from Outbox o
+                select o
+                from Outbox o
                 where o.eventType = com.sacidpak.order.enums.OutboxEventType.INVENTORY
-                and o.processed = false
+                    and o.processed = false
             """)
     List<Outbox> findFailedInventoryMessage();
 }
