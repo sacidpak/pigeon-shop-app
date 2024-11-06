@@ -18,6 +18,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.ResponseEntity;
 
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -91,8 +92,9 @@ public class  OrderServiceTest {
                 .status(OrderStatus.NEW_ORDER)
                 .build();
         var orderItems = OrderScenarios.getOrderItems();
+        var cancelableStatus = List.of(OrderStatus.NEW_ORDER, OrderStatus.PREPARING);
 
-        when(orderRepository.findByOrderNumber(orderNumber)).thenReturn(Optional.of(order));
+        when(orderRepository.findByOrderNumberAndStatuses(orderNumber, cancelableStatus)).thenReturn(Optional.of(order));
         when(orderItemRepository.findAllByOrderNumber(orderNumber)).thenReturn(orderItems);
 
         // when
@@ -110,8 +112,9 @@ public class  OrderServiceTest {
     void shouldThrowException_whenOrderNumberDoesNotExist() {
         // given
         var orderNumber = "nonExistingOrder123";
+        var cancelableStatus = List.of(OrderStatus.NEW_ORDER, OrderStatus.PREPARING);
 
-        when(orderRepository.findByOrderNumber(orderNumber)).thenReturn(Optional.empty());
+        when(orderRepository.findByOrderNumberAndStatuses(orderNumber, cancelableStatus)).thenReturn(Optional.empty());
 
         // when & then
         assertThrows(BusinessException.class, () -> orderService.cancelOrder(orderNumber));
