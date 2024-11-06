@@ -72,7 +72,8 @@ public class OrderService {
     }
 
     public void cancelOrder(String orderNumber) {
-        orderRepository.findByOrderNumber(orderNumber)
+        var cancelableStatus = List.of(OrderStatus.NEW_ORDER, OrderStatus.PREPARING);
+        orderRepository.findByOrderNumberAndStatuses(orderNumber, cancelableStatus)
                 .ifPresentOrElse(order -> {
                     order.setStatus(OrderStatus.CANCELLED);
                     orderRepository.save(order);
@@ -121,7 +122,7 @@ public class OrderService {
     }
 
     private BigDecimal getUnitePrice(ProductInfoResponse productInfo) {
-        if (productInfo.getQuantityType() == QuantityType.KG) {
+        if (productInfo.getDiscount() == null || productInfo.getQuantityType() == QuantityType.KG) {
             return productInfo.getPrice();
         }
         return productInfo.getPrice().subtract(productInfo.getDiscount());
