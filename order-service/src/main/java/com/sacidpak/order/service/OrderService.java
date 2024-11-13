@@ -71,6 +71,7 @@ public class OrderService {
         return CreateOrderResponse.builder().orderNumber(orderNumber).build();
     }
 
+    @Transactional
     public void cancelOrder(String orderNumber) {
         var cancelableStatus = List.of(OrderStatus.NEW_ORDER, OrderStatus.PREPARING);
         orderRepository.findByOrderNumberAndStatuses(orderNumber, cancelableStatus)
