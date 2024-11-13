@@ -53,7 +53,7 @@ public class InventoryService extends BaseService<Inventory, InventoryDto,Long> 
             return new InventoryUpdateResponse(false, failedItems.toString());
         }
 
-        updateInventory(inventories, request);
+        updateInventoryAndSaveTransaction(inventories, request);
 
         return new InventoryUpdateResponse(true, null);
     }
@@ -75,7 +75,7 @@ public class InventoryService extends BaseService<Inventory, InventoryDto,Long> 
                 .collect(Collectors.toList());
     }
 
-    private void updateInventory(List<Inventory> inventories, InventoryUpdateRequest inventoryUpdateRequest) {
+    private void updateInventoryAndSaveTransaction(List<Inventory> inventories, InventoryUpdateRequest inventoryUpdateRequest) {
         var status = inventoryUpdateRequest.getStatus();
         inventories.forEach(inventory -> {
             var quantityBeforeTransaction = inventory.getQuantity();

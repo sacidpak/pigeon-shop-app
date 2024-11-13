@@ -35,7 +35,7 @@ class InventoryServiceTest {
 
     @Test
     @DisplayName("Should update inventory and return success response")
-    void shouldUpdateInventory_whenGivenValidRequest() {
+    void shouldUpdateInventory_AndSaveTransaction_whenGivenValidRequest() {
         // given
         var product1 = new InventoryOrderItemDto("barcode1", BigDecimal.valueOf(5));
         var product2 = new InventoryOrderItemDto("barcode2", BigDecimal.valueOf(3));
