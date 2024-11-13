@@ -25,7 +25,7 @@ public class InventoryTransaction extends BaseEntity<InventoryTransaction, Inven
     @JoinColumn(name = "product_id", referencedColumnName = "id", nullable = false)
     private Product product;
 
-    private BigDecimal currentQuantity;
+    private BigDecimal quantityBeforeTransaction;
 
     private BigDecimal transactionQuantity;
 
@@ -33,5 +33,6 @@ public class InventoryTransaction extends BaseEntity<InventoryTransaction, Inven
 
     private String orderNumber;
 
+    @Enumerated(EnumType.STRING)
     private TransactionStatus status;
 }

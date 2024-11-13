@@ -5,10 +5,11 @@ import static org.mockito.Mockito.*;
 import com.sacidpak.clients.product.InventoryOrderItemDto;
 import com.sacidpak.clients.product.InventoryUpdateRequest;
 import com.sacidpak.product.domain.Inventory;
+import com.sacidpak.product.domain.InventoryTransaction;
 import com.sacidpak.product.domain.Product;
 import com.sacidpak.product.repository.InventoryRepository;
+import com.sacidpak.product.repository.InventoryTransactionRepository;
 import com.sacidpak.product.service.InventoryService;
-import com.sacidpak.product.service.InventoryUpdateRunnable;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -27,7 +28,7 @@ class InventoryServiceTest {
     private InventoryRepository inventoryRepository;
 
     @Mock
-    private InventoryUpdateRunnable inventoryUpdateRunnable;
+    private InventoryTransactionRepository inventoryTransactionRepository;
 
     @InjectMocks
     private InventoryService inventoryService;
@@ -60,7 +61,8 @@ class InventoryServiceTest {
         // then
         assertThat(response).isNotNull();
         assertThat(response.isSuccess()).isTrue();
-        verify(inventoryUpdateRunnable, times(1)).updateInventory(any(), any());
+        verify(inventoryRepository, times(2)).save(any(Inventory.class));
+        verify(inventoryTransactionRepository, times(2)).save(any(InventoryTransaction.class));
     }
 
     @Test
@@ -84,7 +86,8 @@ class InventoryServiceTest {
         // then
         assertThat(response).isNotNull();
         assertThat(response.isSuccess()).isFalse();
-        verify(inventoryUpdateRunnable, never()).updateInventory(any(), any());
+        verify(inventoryRepository, never()).save(any(Inventory.class));
+        verify(inventoryTransactionRepository, never()).save(any(InventoryTransaction.class));
     }
 
     @Test

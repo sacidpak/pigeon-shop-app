@@ -5,13 +5,16 @@ import com.sacidpak.clients.product.InventoryUpdateRequest;
 import com.sacidpak.clients.product.InventoryUpdateResponse;
 import com.sacidpak.common.service.BaseService;
 import com.sacidpak.product.domain.Inventory;
+import com.sacidpak.product.domain.InventoryTransaction;
 import com.sacidpak.product.dto.InventoryDto;
 import com.sacidpak.product.enums.TransactionStatus;
 import com.sacidpak.product.repository.InventoryRepository;
+import com.sacidpak.product.repository.InventoryTransactionRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
@@ -25,8 +28,9 @@ public class InventoryService extends BaseService<Inventory, InventoryDto,Long> 
 
     private final InventoryRepository inventoryRepository;
 
-    private final InventoryUpdateRunnable inventoryUpdateRunnable;
+    private final InventoryTransactionRepository inventoryTransactionRepository;
 
+    @Transactional
     public InventoryUpdateResponse inventoryUpdate(InventoryUpdateRequest request) {
         var barcodes = request.getProducts().stream()
                 .map(InventoryOrderItemDto::getBarcode)
@@ -49,7 +53,7 @@ public class InventoryService extends BaseService<Inventory, InventoryDto,Long> 
             return new InventoryUpdateResponse(false, failedItems.toString());
         }
 
-        inventoryUpdateRunnable.updateInventory(inventories, request);
+        updateInventory(inventories, request);
 
         return new InventoryUpdateResponse(true, null);
     }
@@ -69,5 +73,42 @@ public class InventoryService extends BaseService<Inventory, InventoryDto,Long> 
         return inventories.stream()
                 .map(element -> mapper.map(element, InventoryDto.class))
                 .collect(Collectors.toList());
+    }
+
+    private void updateInventory(List<Inventory> inventories, InventoryUpdateRequest inventoryUpdateRequest) {
+        var status = inventoryUpdateRequest.getStatus();
+        inventories.forEach(inventory -> {
+            var quantityBeforeTransaction = inventory.getQuantity();
+            var product = inventory.getProduct();
+            inventoryUpdateRequest.getProducts().stream()
+                    .filter(f -> f.getBarcode().equals(inventory.getProduct().getBarcode()))
+                    .findFirst()
+                    .ifPresent(productItem -> {
+                        BigDecimal quantityResult = null;
+                        TransactionStatus transactionStatus = null;
+                        if(TransactionStatus.NEW_ORDER.name().equals(status)){
+                            quantityResult = inventory.getQuantity().subtract(productItem.getQuantity());
+                            transactionStatus = TransactionStatus.NEW_ORDER;
+                        } else if(TransactionStatus.CANCELLED.name().equals(status)){
+                            quantityResult = inventory.getQuantity().add(productItem.getQuantity());
+                            transactionStatus = TransactionStatus.CANCELLED;
+                        }
+
+                        inventory.setQuantity(quantityResult);
+                        inventoryRepository.save(inventory);
+
+                        var transaction = InventoryTransaction.builder()
+                                .product(product)
+                                .transactionQuantity(productItem.getQuantity())
+                                .orderNumber(inventoryUpdateRequest.getOrderNumber())
+                                .quantityBeforeTransaction(quantityBeforeTransaction)
+                                .quantity(quantityResult)
+                                .status(transactionStatus)
+                                .build();
+
+                        inventoryTransactionRepository.save(transaction);
+                        log.info("Updated inventory product {} with quantity {}", product, productItem.getQuantity());
+                    });
+        });
     }
 }
